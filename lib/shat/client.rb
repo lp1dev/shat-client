@@ -1,9 +1,10 @@
 require 'shat/config'
 require 'shat/client/version'
 
-Config.load
+Shat::Config.load
 
 module Shat
   module Client
+    include Shat::Config
   end
 end
