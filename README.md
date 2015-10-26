@@ -4,6 +4,12 @@ Update/fetch gems :
 
     $ bundle
 
+Launch tests :
+
+    $ bundle exec rspec
+
 ## Usage
 
-TODO: Write usage instructions here
+Run with :
+
+    $ SHAT_ENV=<test|dev|prod> bundle exec ruby lib/shat/client.rb

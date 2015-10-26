@@ -1,7 +1,9 @@
-require "shat/client/version"
+require 'shat/config'
+require 'shat/client/version'
+
+Config.load
 
 module Shat
   module Client
-    # Your code goes here...
   end
 end
