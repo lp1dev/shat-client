@@ -8,7 +8,7 @@ module Shat
       # loads .env file variable according to SHAT_ENV, then exposes
       # a public method for each variable
       Dotenv.load(*[".env.#{ENV['SHAT_ENV'] || 'dev'}"]).each do |k,v|
-        define_method(k.to_sym) { v }
+        define_method(k.downcase.to_sym) { v }
       end
     end
   end
