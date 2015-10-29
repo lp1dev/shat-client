@@ -12,4 +12,4 @@ Launch tests :
 
 Run with :
 
-    $ SHAT_ENV=<test|dev|prod> bundle exec ruby lib/shat/client.rb
+    $ SHAT_ENV=<test|dev|prod> bundle exec ruby app/client.rb
