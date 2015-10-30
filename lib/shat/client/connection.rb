@@ -17,32 +17,63 @@ module Shat
         close_socket
       end
 
+      def get
+        msg = Shat::Crypto.decrypt(@socket.gets, Config.passphrase, Config.iv)
+        puts "<=== #{msg}"
+        msg
+      end
+
       def open
         open_socket
         handshake
+        if block_given?
+          yield self
+          close
+        end
       end
 
       def send(msg)
-        @socket.puts Shat::Crypto.encrypt(msg, Config.passphrase, Config.iv)
+        crypted = Shat::Crypto.encrypt(msg, Config.passphrase, Config.iv)
+        @socket.puts crypted
+
+        puts "===> #{msg}"
       end
 
       private
 
-      def handshake
-        puts 'Authenticating...'
-        msg = {hello: remote_host}.to_json
-        send(msg)
-        puts 'Done.'
+      def close_socket
+        @socket.close if @socket
       end
 
-      def close_socket
-        @socket.close
+      def first_step
+        msg = {hello: remote_host}.to_json
+        send(msg)
+      end
+
+      def handshake
+        puts 'Authenticating...'
+
+        first_step
+        resp = JSON.parse(get)
+
+        second_step(resp)
+
+        get
+
+        puts 'Done.'
       end
 
       def open_socket
         puts "Connecting to #{remote_host}:#{remote_port}..."
         @socket = TCPSocket.new(remote_host, remote_port)
         puts 'Connected.'
+      end
+
+      def second_step(resp)
+        username = Config.username rescue 'anonymous'
+        key = Shat::Crypto.decrypt(resp['message'], Config.passphrase, Config.iv)
+        msg = {connection: {login: username, message: key}}.to_json
+        send(msg)
       end
     end
   end
