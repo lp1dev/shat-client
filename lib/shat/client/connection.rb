@@ -30,6 +30,7 @@ module Shat
       def open
         open_socket
         handshake
+        show_user_list
         if block_given?
           yield self
           close
@@ -87,6 +88,13 @@ module Shat
         key = Shat::Crypto.decrypt(resp['message'], Config.passphrase, Config.iv)
         msg = {connection: {login: username, message: key}}
         send(msg)
+      end
+
+      def show_user_list
+        puts "Connected users :\n"
+        @user_list.each do |u|
+          puts "#{u['login']}, #{u['ip']}"
+        end
       end
     end
   end
