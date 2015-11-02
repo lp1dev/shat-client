@@ -6,19 +6,22 @@ require 'shat/crypto'
 module Shat
   module Client
     class Connection
-      attr_reader   :socket
+      attr_reader   :socket, :user_list, :username
       attr_accessor :remote_host, :remote_port
 
       def initialize(remote_host='127.0.0.1', remote_port=80)
         @remote_host = remote_host
         @remote_port = remote_port
+        @username    = Config.username rescue 'anonymous'
       end
 
       def close
+        msg = {logout: {login: username}}
+        send(msg)
         close_socket
       end
 
-      def get
+      def receive
         msg = Shat::Crypto.decrypt(@socket.gets, Config.passphrase, Config.iv)
         puts "<=== #{msg}"
         msg
@@ -38,7 +41,7 @@ module Shat
       end
 
       def send(msg)
-        msg = msg.merge( {private_key: private_key} )
+        msg = msg.merge( {private_key: private_key} ) rescue msg
 
         crypted = Shat::Crypto.encrypt(msg.to_json, Config.passphrase, Config.iv)
         @socket.puts crypted
@@ -57,15 +60,19 @@ module Shat
         send(msg)
       end
 
+      def get_user_list(response)
+        @user_list = JSON.parse(response).map{ |h| h.select{ |k,_| %w(login ip).include? k }}
+      end
+
       def handshake
         puts 'Authenticating...'
 
         first_step
-        resp = JSON.parse(get)
+        resp = JSON.parse(receive)
 
         second_step(resp)
 
-        get
+        get_user_list(receive)
 
         puts 'Done.'
       end
@@ -77,7 +84,6 @@ module Shat
       end
 
       def second_step(resp)
-        username = Config.username rescue 'anonymous'
         key = Shat::Crypto.decrypt(resp['message'], Config.passphrase, Config.iv)
         msg = {connection: {login: username, message: key}}
         send(msg)
