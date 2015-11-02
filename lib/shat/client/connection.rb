@@ -1,5 +1,6 @@
 require 'json'
 require 'socket'
+require 'securerandom'
 require 'shat/crypto'
 
 module Shat
@@ -32,8 +33,14 @@ module Shat
         end
       end
 
+      def private_key
+        @__private_key__ ||= SecureRandom.hex(13)
+      end
+
       def send(msg)
-        crypted = Shat::Crypto.encrypt(msg, Config.passphrase, Config.iv)
+        msg = msg.merge( {private_key: private_key} )
+
+        crypted = Shat::Crypto.encrypt(msg.to_json, Config.passphrase, Config.iv)
         @socket.puts crypted
 
         puts "===> #{msg}"
@@ -46,7 +53,7 @@ module Shat
       end
 
       def first_step
-        msg = {hello: remote_host}.to_json
+        msg = {hello: remote_host}
         send(msg)
       end
 
@@ -72,7 +79,7 @@ module Shat
       def second_step(resp)
         username = Config.username rescue 'anonymous'
         key = Shat::Crypto.decrypt(resp['message'], Config.passphrase, Config.iv)
-        msg = {connection: {login: username, message: key}}.to_json
+        msg = {connection: {login: username, message: key}}
         send(msg)
       end
     end
