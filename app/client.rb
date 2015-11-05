@@ -15,7 +15,7 @@ def get_username(prompt='Select username : ')
     username = gets.chomp
     raise if invalid_username?(username)
   rescue
-    print 'Username must be between 3 and 13 non-special characters'
+    puts 'Username must be between 3 and 13 non-special characters'
     retry
   end
 end

@@ -54,7 +54,7 @@ module Shat
       private
 
       def check_error(resp)
-        return if resp['error'].nil?
+        return unless resp.has_key?('error')
         raise UsernameTaken if resp['error']['code'] == 4
       end
 
@@ -75,9 +75,7 @@ module Shat
         puts 'Authenticating...'
 
         first_step
-
         second_step(receive)
-
         get_user_list(receive)
 
         puts 'Done.'
