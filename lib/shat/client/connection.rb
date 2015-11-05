@@ -16,7 +16,7 @@ module Shat
       end
 
       def close
-        msg = {logout: {login: username}}
+        msg = {logout: {}}
         send(msg)
         close_socket
       end
@@ -24,7 +24,6 @@ module Shat
       def open
         open_socket
         handshake
-        show_user_list
         if block_given?
           yield self
           close
@@ -68,8 +67,8 @@ module Shat
         send(msg)
       end
 
-      def get_user_list(response)
-        @user_list = response.map{ |h| h.select{ |k,_| %w(login ip).include? k }}
+      def get_user_list(resp)
+        @user_list = resp.map{ |h| h.select{ |k,_| %w(login ip).include? k }}
       end
 
       def handshake
@@ -96,13 +95,6 @@ module Shat
         key = Shat::Crypto.decrypt(resp['connection']['message'], Config.passphrase, Config.iv)
         msg = {connection: {login: username, message: key}}
         send(msg)
-      end
-
-      def show_user_list
-        puts "Connected users :"
-        @user_list.each do |u|
-          puts "#{u['login']}"
-        end
       end
     end
   end
